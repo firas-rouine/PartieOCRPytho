@@ -90,7 +90,7 @@ def ocr_endpoint():
         # Debugging: Check the request files and form data
         print("Received files:", request.files)
         print("Received form data:", request.form)
-        pytesseract.pytesseract.tesseract_cmd = r"Tesseract-OCR/tesseract.exe"
+        # pytesseract.pytesseract.tesseract_cmd = r"Tesseract-OCR/tesseract.exe"
         # pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
         image = request.files['image']
@@ -133,7 +133,7 @@ def ocr_pdf_endpoint():
         # pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
         # pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
-        pytesseract.pytesseract.tesseract_cmd = r"Tesseract-OCR/tesseract.exe"
+        # pytesseract.pytesseract.tesseract_cmd = r"Tesseract-OCR/tesseract.exe"
         poppler_path = r"poppler-24.07.0/Library/bin"
         images = convert_from_path(pdf_path, dpi=300, output_folder=output_folder, poppler_path=poppler_path)
         
