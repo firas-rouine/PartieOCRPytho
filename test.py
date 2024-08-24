@@ -42,6 +42,7 @@ from flask_cors import CORS
 from pdf2image import convert_from_path
 from pdf2image import convert_from_path
 # Initialize the Flask application
+import requests
 app = Flask(__name__)
 CORS(app)
 output_folder = 'temp'
@@ -84,39 +85,39 @@ def text_to_braille(text, language):
     braille_text = ''.join(braille_alphabet.get(char, char) for char in text)
     return braille_text
 
-@app.route('/ocr', methods=['POST'])
-def ocr_endpoint():
-    try:
-        # Debugging: Check the request files and form data
-        print("Received files:", request.files)
-        print("Received form data:", request.form)
-        # pytesseract.pytesseract.tesseract_cmd = r"Tesseract-OCR/tesseract.exe"
-        # pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
+# @app.route('/ocr', methods=['POST'])
+# def ocr_endpoint():
+#     try:
+#         # Debugging: Check the request files and form data
+#         print("Received files:", request.files)
+#         print("Received form data:", request.form)
+#         # pytesseract.pytesseract.tesseract_cmd = r"Tesseract-OCR/tesseract.exe"
+#         # pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
-        image = request.files['image']
-        languages = request.form.getlist('language[]')
+#         image = request.files['image']
+#         languages = request.form.getlist('language[]')
 
-        image_path = os.path.join(output_folder, 'temp_image.png')
-        image.save(image_path)
+#         image_path = os.path.join(output_folder, 'temp_image.png')
+#         image.save(image_path)
         
-        results = {}
+#         results = {}
 
-        for language in languages:
-            text = pytesseract.image_to_string(Image.open(image_path), lang=language)
-            print(f"Extracted text for language {language}: {text}")
+#         for language in languages:
+#             text = pytesseract.image_to_string(Image.open(image_path), lang=language)
+#             print(f"Extracted text for language {language}: {text}")
 
-            # braille_text = text_to_braille(text.lower(), language)
-            # print(f"Braille text for language {language}: {braille_text}")
+#             # braille_text = text_to_braille(text.lower(), language)
+#             # print(f"Braille text for language {language}: {braille_text}")
             
-            results[language] = {
-                'text': text,
-                # 'braille': braille_text
-            }
+#             results[language] = {
+#                 'text': text,
+#                 # 'braille': braille_text
+#             }
 
-        return jsonify(results)
+#         return jsonify(results)
     
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
+#     except Exception as e:
+#         return jsonify({'error': str(e)}), 500
 
     
 
@@ -160,6 +161,28 @@ def ocr_pdf_endpoint():
     
     except Exception as e:
        
+        return jsonify({'error': str(e)}), 500
+
+
+
+@app.route('/ocr', methods=['POST'])
+def ocr_endpoint():
+    try:
+        image = request.files['image']
+        image_path = os.path.join('temp', 'temp_image.png')
+        image.save(image_path)
+
+        # Call the OCR.space API
+        api_key = 'K89403213588957'
+        url = 'https://api.ocr.space/parse/image'
+        payload = {'apikey': api_key}
+        with open(image_path, 'rb') as image_file:
+            response = requests.post(url, files={'file': image_file}, data=payload)
+            result = response.json()
+            text = result.get('ParsedResults', [{}])[0].get('ParsedText', '')
+
+        return jsonify({'text': text})
+    except Exception as e:
         return jsonify({'error': str(e)}), 500
 @app.route('/transcribe_braille', methods=['POST'])
 def transcribe_braille_endpoint():
